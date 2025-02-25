@@ -1,0 +1,2 @@
+[*.cpp,*.h]
+cpp_indent_namespace_contents = false
