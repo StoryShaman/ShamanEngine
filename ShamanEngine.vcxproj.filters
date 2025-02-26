@@ -7,6 +7,55 @@
     <Filter Include="shaders">
       <UniqueIdentifier>{0F45D591-7B24-542D-843C-DF03F09ABA8E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\SeDevice.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SePipeline.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SeRenderer.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SeSwapChain.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SeWindow.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ShamanEngine.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vulkancontext.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\SeDevice.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SePipeline.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SeRenderer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SeSwapChain.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SeWindow.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ShamanEngine.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="config\config.ini">

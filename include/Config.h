@@ -6,7 +6,7 @@
 
 
 
-
+namespace SE {
 class Config {
 public:
     static Config& get() {
@@ -20,6 +20,7 @@ public:
     const std::string& asset_path() const { return asset_path_; }
     const std::string& model_path() const { return model_path_; }
     const std::string& texture_path() const { return texture_path_; }
+    const std::string& shader_path() const { return shader_path_; }
     
     // Load config from file
     void load_from_file(const std::string& filename) {
@@ -45,12 +46,15 @@ public:
             std::string value = line.substr(delim + 1);
             
             // Assign values (basic type conversion)
-            if (key == "width") window_.width = std::stoul(value);
+            if (key == "name") window_.name = value;
+            else if (key == "width") window_.width = std::stoul(value);
             else if (key == "height") window_.height = std::stoul(value);
             else if (key == "max_frames_in_flight") max_frames_in_flight_ = std::stoi(value);
             else if (key == "asset_path") asset_path_ = value;
             else if (key == "model_path") model_path_ = value;
             else if (key == "texture_path") texture_path_ = value;
+            else if (key == "shader_path") shader_path_ = value;
+            
         }
         
         file.close();
@@ -63,14 +67,16 @@ private:
     {
         uint32_t width;
         uint32_t height;
+        std::string name;
     } window_;
     
     Config() 
-        : window_{1920, 1080 }
+        : window_{ 1920, 1080 }
         , max_frames_in_flight_(2)
         , asset_path_("assets/")
         , model_path_("models/")
         , texture_path_("textures/")
+        , shader_path_("shaders/")
     {
         // Load config at construction (could move to main if preferred)
         load_from_file("config/config.ini");
@@ -82,4 +88,6 @@ private:
     std::string asset_path_;
     std::string model_path_;
     std::string texture_path_;
+    std::string shader_path_;
 };
+}

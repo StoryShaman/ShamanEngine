@@ -73,9 +73,6 @@
       <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>vendor\GLFW\lib-vc2022;vendor\vulkan;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
-    <PreLinkEvent>
-      <Command>shaders\compileshaders.bat</Command>
-    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -101,6 +98,24 @@
       <AdditionalLibraryDirectories>vendor\GLFW\lib-vc2022;vendor\vulkan;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="src\SeDevice.h" />
+    <ClInclude Include="src\SePipeline.h" />
+    <ClInclude Include="src\SeRenderer.h" />
+    <ClInclude Include="src\SeSwapChain.h" />
+    <ClInclude Include="src\SeWindow.h" />
+    <ClInclude Include="src\ShamanEngine.h" />
+    <ClInclude Include="src\vulkancontext.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\SeDevice.cpp" />
+    <ClCompile Include="src\SePipeline.cpp" />
+    <ClCompile Include="src\SeRenderer.cpp" />
+    <ClCompile Include="src\SeSwapChain.cpp" />
+    <ClCompile Include="src\SeWindow.cpp" />
+    <ClCompile Include="src\ShamanEngine.cpp" />
+    <ClCompile Include="src\main.cpp" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="config\config.ini" />
     <None Include="shaders\compileshaders.bat" />

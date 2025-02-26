@@ -50,7 +50,7 @@ filter { "configurations:Debug" }
     defines { "DEBUG" }
     runtime "Debug"
     symbols "On"
-    prelinkcommands { "shaders\\compileshaders.bat" }
+    
 
 filter { "configurations:Release" }
     buildoptions "/MT"
