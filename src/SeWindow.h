@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #define GLFW_INCLUDE_VULKAN
+#include <memory>
 #include <GLFW/glfw3.h>
 
 
@@ -11,16 +12,23 @@ struct VulkanContext;
 class SeWindow
 {
 public:
-    SeWindow(VulkanContext* inctx);
+    SeWindow(std::shared_ptr<VulkanContext> inctx);
     ~SeWindow();
     bool shouldClose();
     void createWindowSurface();
+
     
     GLFWwindow* window;
+
+    int width;
+    int height;
+    bool framebufferResized = false;
+    
 private:
+    static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
     
     void initWindow();
-    VulkanContext* ctx;
+    std::shared_ptr<VulkanContext> ctx;
     
 };
 

@@ -33,7 +33,7 @@ public:
   const bool enableValidationLayers = true;
 #endif
 
-    SeDevice(VulkanContext* inctx);
+    SeDevice(std::shared_ptr<VulkanContext> inctx);
     ~SeDevice();
 
     // Not copyable or movable
@@ -93,7 +93,7 @@ private:
     bool checkDeviceExtensionSupport(VkPhysicalDevice device);
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
   
-    VulkanContext* ctx;
+    std::shared_ptr<VulkanContext> ctx;
 
 
     const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};

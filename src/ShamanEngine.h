@@ -11,7 +11,7 @@ public:
     ~ShamanEngine();
     void run();
     
-    VulkanContext* ctx = nullptr;
+    std::shared_ptr<VulkanContext> ctx;
     
 private:
     

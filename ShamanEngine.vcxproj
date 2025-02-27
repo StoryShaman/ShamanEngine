@@ -100,6 +100,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\SeDevice.h" />
+    <ClInclude Include="src\SeModel.h" />
     <ClInclude Include="src\SePipeline.h" />
     <ClInclude Include="src\SeRenderer.h" />
     <ClInclude Include="src\SeSwapChain.h" />
@@ -109,6 +110,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\SeDevice.cpp" />
+    <ClCompile Include="src\SeModel.cpp" />
     <ClCompile Include="src\SePipeline.cpp" />
     <ClCompile Include="src\SeRenderer.cpp" />
     <ClCompile Include="src\SeSwapChain.cpp" />

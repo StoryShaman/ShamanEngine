@@ -9,11 +9,12 @@
 #include <set>
 #include <stdexcept>
 
+#include "SeDevice.h"
 #include "vulkancontext.h"
 
 namespace SE {
 
-SeSwapChain::SeSwapChain(VulkanContext* inctx) {
+SeSwapChain::SeSwapChain(std::shared_ptr<VulkanContext> inctx) {
   ctx = inctx;
   createSwapChain();
   createImageViews();
@@ -97,7 +98,8 @@ VkResult SeSwapChain::submitCommandBuffers(
   submitInfo.pSignalSemaphores = signalSemaphores;
 
   vkResetFences(ctx->device, 1, &inFlightFences[currentFrame]);
-  if (vkQueueSubmit(ctx->graphics_queue, 1, &submitInfo, inFlightFences[currentFrame]) !=
+  VkResult result = vkQueueSubmit(ctx->graphics_queue, 1, &submitInfo, inFlightFences[currentFrame]);
+  if (result !=
       VK_SUCCESS) {
     throw std::runtime_error("failed to submit draw command buffer!");
   }
@@ -114,7 +116,7 @@ VkResult SeSwapChain::submitCommandBuffers(
 
   presentInfo.pImageIndices = imageIndex;
 
-  auto result = vkQueuePresentKHR(ctx->present_queue, &presentInfo);
+  result = vkQueuePresentKHR(ctx->present_queue, &presentInfo);
 
   currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
@@ -165,8 +167,9 @@ void SeSwapChain::createSwapChain() {
   createInfo.clipped = VK_TRUE;
 
   createInfo.oldSwapchain = VK_NULL_HANDLE;
-
-  if (vkCreateSwapchainKHR(ctx->device, &createInfo, nullptr, &ctx->swap_chain) != VK_SUCCESS) {
+  VkResult result = vkCreateSwapchainKHR(ctx->device, &createInfo, nullptr, &ctx->swap_chain);
+  if (result != VK_SUCCESS) {
+    std::cerr << result;
     throw std::runtime_error("failed to create swap chain!");
   }
 
@@ -259,7 +262,7 @@ void SeSwapChain::createRenderPass() {
   renderPassInfo.dependencyCount = 1;
   renderPassInfo.pDependencies = &dependency;
 
-  if (vkCreateRenderPass(ctx->device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
+  if (vkCreateRenderPass(ctx->device, &renderPassInfo, nullptr, &ctx->render_pass) != VK_SUCCESS) {
     throw std::runtime_error("failed to create render pass!");
   }
 }
@@ -269,14 +272,14 @@ void SeSwapChain::createFramebuffers() {
   for (size_t i = 0; i < imageCount(); i++) {
     std::array<VkImageView, 2> attachments = {swapChainImageViews[i], depthImageViews[i]};
 
-    VkExtent2D swapChainExtent = getSwapChainExtent();
+
     VkFramebufferCreateInfo framebufferInfo = {};
     framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebufferInfo.renderPass = renderPass;
+    framebufferInfo.renderPass = ctx->render_pass;
     framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
     framebufferInfo.pAttachments = attachments.data();
-    framebufferInfo.width = swapChainExtent.width;
-    framebufferInfo.height = swapChainExtent.height;
+    framebufferInfo.width = ctx->Se_window->width;
+    framebufferInfo.height = ctx->Se_window->height;
     framebufferInfo.layers = 1;
 
     if (vkCreateFramebuffer(
@@ -291,7 +294,6 @@ void SeSwapChain::createFramebuffers() {
 
 void SeSwapChain::createDepthResources() {
   VkFormat depthFormat = findDepthFormat();
-  VkExtent2D swapChainExtent = getSwapChainExtent();
 
   depthImages.resize(imageCount());
   depthImageMemorys.resize(imageCount());
@@ -301,8 +303,8 @@ void SeSwapChain::createDepthResources() {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width = swapChainExtent.width;
-    imageInfo.extent.height = swapChainExtent.height;
+    imageInfo.extent.width = ctx->Se_window->width;
+    imageInfo.extent.height = ctx->Se_window->height;
     imageInfo.extent.depth = 1;
     imageInfo.mipLevels = 1;
     imageInfo.arrayLayers = 1;
@@ -364,7 +366,7 @@ void SeSwapChain::createSyncObjects() {
 VkSurfaceFormatKHR SeSwapChain::chooseSwapSurfaceFormat(
     const std::vector<VkSurfaceFormatKHR> &availableFormats) {
   for (const auto &availableFormat : availableFormats) {
-    if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM &&
+    if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
         availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
       return availableFormat;
     }

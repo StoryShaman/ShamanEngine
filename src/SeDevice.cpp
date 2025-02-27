@@ -49,7 +49,7 @@ void DestroyDebugUtilsMessengerEXT(
 }
 
 // class member functions
-SeDevice::SeDevice(VulkanContext* inctx) {
+SeDevice::SeDevice(std::shared_ptr<VulkanContext> inctx) {
   ctx = inctx;
   createInstance();
   setupDebugMessenger();

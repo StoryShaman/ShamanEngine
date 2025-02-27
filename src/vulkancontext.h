@@ -2,6 +2,7 @@
 #include <memory>
 
 
+#include "SeModel.h"
 #include "SeRenderer.h"
 #include "SeSwapChain.h"
 #include "SeWindow.h"
@@ -17,6 +18,9 @@ class SeSwapChain;
 struct PipelineConfigInfo {
     VkViewport viewport;
     VkRect2D scissor;
+    VkPipelineViewportStateCreateInfo viewportInfo;
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo;
+    VkGraphicsPipelineCreateInfo graphicsPipelineInfo;
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
     VkPipelineRasterizationStateCreateInfo rasterizationInfo;
     VkPipelineMultisampleStateCreateInfo multisampleInfo;
@@ -37,6 +41,7 @@ struct VulkanContext
     SePipeline* Se_pipeline = nullptr;
     SeSwapChain* Se_swapchain = nullptr;
     SeRenderer* Se_renderer = nullptr;
+    std::unique_ptr<SeModel> Se_model = nullptr;
 
     PipelineConfigInfo pipeline_config_info;
     VkInstance instance;
@@ -47,14 +52,16 @@ struct VulkanContext
     VkPhysicalDeviceProperties physical_device_properties;
     VkPhysicalDeviceFeatures physical_device_features;
     VkPhysicalDeviceMemoryProperties physical_device_memory_properties;
-    VkPipeline pipeline;
+    VkPipeline pipeline_graphics;
     VkPipelineLayout pipeline_layout;
     VkSwapchainKHR swap_chain;
+    VkRenderPass render_pass;
     VkQueue queue;
     VkQueue graphics_queue;
     VkQueue present_queue;
     VkCommandPool command_pool;
     VkCommandBuffer command_buffer;
+    std::vector<VkCommandBuffer> command_buffers;
     VkDescriptorPool descriptor_pool;
     VkDescriptorSetLayout descriptor_set_layout;
     VkDescriptorSet descriptor_set;

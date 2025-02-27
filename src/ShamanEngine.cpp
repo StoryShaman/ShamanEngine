@@ -4,6 +4,7 @@
 #include <ostream>
 #include <GLFW/glfw3.h>
 
+#include "SeDevice.h"
 #include "SePipeline.h"
 #include "SeRenderer.h"
 #include "SeWindow.h"
@@ -12,7 +13,7 @@
 namespace SE {
 ShamanEngine::ShamanEngine()
 {
-    ctx = new VulkanContext{};
+    ctx = std::make_shared<VulkanContext>();
     ctx->Se_window = new SeWindow(ctx);
     ctx->Se_device = new SeDevice(ctx);
     ctx->Se_swapchain = new SeSwapChain(ctx);
@@ -20,7 +21,7 @@ ShamanEngine::ShamanEngine()
     
     
 
-    std::cout << ctx << std::endl;
+    std::cout << &ctx << std::endl;
     
 }
 
@@ -33,7 +34,9 @@ void ShamanEngine::run()
     while (!ctx->Se_window->shouldClose())
     {
         glfwPollEvents();
+        ctx->Se_renderer->drawFrame();
     }
+    vkDeviceWaitIdle(ctx->device);
 }
 
 }

@@ -4,11 +4,11 @@
 
 
 namespace SE {
-SeWindow::SeWindow(VulkanContext* inctx)
+SeWindow::SeWindow(std::shared_ptr<VulkanContext> inctx)
 {
     ctx = inctx;
-    //std::cout << "SeWindow::SeWindow()" << "\n";
     initWindow();
+    glfwGetWindowSize(ctx->window, &width, &height);
 }
 
 SeWindow::~SeWindow()
@@ -29,15 +29,33 @@ void SeWindow::createWindowSurface()
     }
 }
 
+
+void SeWindow::framebufferResizeCallback(GLFWwindow* window, int width, int height)
+{
+    auto SeWindow = reinterpret_cast<SE::SeWindow*>(glfwGetWindowUserPointer(window));
+    SeWindow->framebufferResized = true;
+    SeWindow->width = width;
+    SeWindow->height = height;
+}
+
 void SeWindow::initWindow()
 {
     Config& config = Config::get();
     
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     
-    ctx->window = glfwCreateWindow(config.window().width, config.window().height, config.window().name.c_str(), NULL, NULL);
+    ctx->window = glfwCreateWindow(
+        static_cast<uint32_t>(config.window().width),
+        static_cast<uint32_t>(config.window().height),
+        config.window().name.c_str(),
+        NULL,
+        NULL
+        );
+
+    glfwSetWindowUserPointer(ctx->window, this);
+    glfwSetFramebufferSizeCallback(ctx->window, framebufferResizeCallback);
 }
 }
 
