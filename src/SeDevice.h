@@ -27,22 +27,18 @@ struct QueueFamilyIndices {
 class SeDevice {
 public:
   
-#ifdef NDEBUG
-  const bool enableValidationLayers = false;
-#else
-  const bool enableValidationLayers = true;
-#endif
+
 
     SeDevice(std::shared_ptr<VulkanContext> inctx);
     ~SeDevice();
-
+  
     // Not copyable or movable
     SeDevice(const SeDevice &) = delete;
     void operator=(const SeDevice &) = delete;
     SeDevice(SeDevice &&) = delete;
     SeDevice &operator=(SeDevice &&) = delete;
     
-
+    
 
     SwapChainSupportDetails getSwapChainSupport();
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
@@ -71,33 +67,35 @@ public:
       VkImage &image,
       VkDeviceMemory &imageMemory);
 
+public:
+  
+    VkPhysicalDevice physical_device;
+    VkDevice device;
+    VkQueue graphics_queue;
+    VkQueue present_queue;
+    VkCommandPool command_pool;
     VkPhysicalDeviceProperties properties;
+    VkInstance instance;
 
   
 
 private:
-    void createInstance();
-    void setupDebugMessenger();
-    void createSurface();
+  
     void pickPhysicalDevice();
     void createLogicalDevice();
     void createCommandPool();
 
     // helper functions
     bool isDeviceSuitable(VkPhysicalDevice device);
-    std::vector<const char *> getRequiredExtensions();
-    bool checkValidationLayerSupport();
+    
+    
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
-    void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
-    void hasGflwRequiredInstanceExtensions();
+    
+    
     bool checkDeviceExtensionSupport(VkPhysicalDevice device);
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
   
     std::shared_ptr<VulkanContext> ctx;
-
-
-    const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
-    const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 };
 
 } 

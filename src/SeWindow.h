@@ -17,8 +17,9 @@ public:
     bool shouldClose();
     void createWindowSurface();
 
-    
+public:
     GLFWwindow* window;
+    VkSurfaceKHR surface;
 
     int width;
     int height;

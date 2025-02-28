@@ -15,6 +15,9 @@
     <ClInclude Include="src\SeDevice.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\SeModel.h">
+      <Filter>src</Filter>
+    </ClInclude>
     <ClInclude Include="src\SePipeline.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -36,6 +39,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\SeDevice.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SeModel.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\SePipeline.cpp">
@@ -74,6 +80,12 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\simple_shader_vert.spv">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\simple_shaderold.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\simple_shaderold.vert">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

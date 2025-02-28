@@ -13,6 +13,12 @@ public:
         static Config instance;
         return instance;
     }
+
+    #ifdef NDEBUG
+        const bool enableValidationLayers = false;
+    #else
+        const bool enableValidationLayers = true;
+    #endif
     
     // Public accessors (read-only outside class)
     auto window() const { return window_; }

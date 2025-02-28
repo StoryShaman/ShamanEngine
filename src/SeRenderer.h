@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <memory>
 
+#include "SePipeline.h"
+
 namespace SE {
 struct VulkanContext;
 }
@@ -9,6 +11,7 @@ namespace SE {
 class SeRenderer
 {
 public:
+    
     SeRenderer(std::shared_ptr<VulkanContext> inctx);
     ~SeRenderer();
 
@@ -20,6 +23,10 @@ public:
 
     void drawFrame();
 
+public:
+    
+    std::vector<VkCommandBuffer> command_buffers;
+    VkPipelineLayout pipeline_layout;
     std::shared_ptr<VulkanContext> ctx;
 
 private:

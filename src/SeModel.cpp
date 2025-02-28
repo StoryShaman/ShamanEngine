@@ -36,8 +36,8 @@ SeModel::SeModel(std::shared_ptr<VulkanContext> inctx, std::vector<Vertex>& vert
 
 SeModel::~SeModel()
 {
-    vkDestroyBuffer(ctx->device, vertexBuffer, nullptr);
-    vkFreeMemory(ctx->device, vertexBufferMemory, nullptr);
+    vkDestroyBuffer(ctx->Se_device->device, vertexBuffer, nullptr);
+    vkFreeMemory(ctx->Se_device->device, vertexBufferMemory, nullptr);
 }
 
 void SeModel::bind(VkCommandBuffer commandBuffer)
@@ -65,9 +65,9 @@ void SeModel::createVertexBuffer(const std::vector<Vertex>& vertices)
             vertexBufferMemory
         );
     void *data;
-    vkMapMemory(ctx->device, vertexBufferMemory, 0, vertexBufferSize, 0, &data);
+    vkMapMemory(ctx->Se_device->device, vertexBufferMemory, 0, vertexBufferSize, 0, &data);
     memcpy(data, vertices.data(), vertexBufferSize);
-    vkUnmapMemory(ctx->device, vertexBufferMemory);
+    vkUnmapMemory(ctx->Se_device->device, vertexBufferMemory);
     
 }
 }

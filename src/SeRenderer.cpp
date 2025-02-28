@@ -3,6 +3,7 @@
 #include <array>
 #include <stdexcept>
 
+#include "SeDevice.h"
 #include "SePipeline.h"
 
 namespace SE {
@@ -17,7 +18,7 @@ SeRenderer::SeRenderer(std::shared_ptr<VulkanContext> inctx)
 
 SeRenderer::~SeRenderer()
 {
-    vkDestroyPipelineLayout(ctx->device, ctx->pipeline_layout, nullptr);
+    vkDestroyPipelineLayout(ctx->Se_device->device, pipeline_layout, nullptr);
 }
 
 void SeRenderer::createPipelineLayout()
@@ -29,7 +30,7 @@ void SeRenderer::createPipelineLayout()
     pipelineLayoutInfo.pushConstantRangeCount = 0;
     pipelineLayoutInfo.pPushConstantRanges = nullptr;
     
-    if (vkCreatePipelineLayout(ctx->device, &pipelineLayoutInfo, VK_NULL_HANDLE, &ctx->pipeline_layout) != VK_SUCCESS)
+    if (vkCreatePipelineLayout(ctx->Se_device->device, &pipelineLayoutInfo, VK_NULL_HANDLE, &pipeline_layout) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create pipeline layout!");
     }
@@ -41,8 +42,8 @@ void SeRenderer::createPipeline()
 {
     ctx->Se_pipeline = new SePipeline(ctx);
     ctx->Se_pipeline->defaultPipelineConfigInfo(ctx->Se_swapchain->getSwapChainExtent().width, ctx->Se_swapchain->getSwapChainExtent().height);
-    ctx->pipeline_config_info.renderPass = ctx->Se_swapchain->getRenderPass();
-    ctx->pipeline_config_info.pipelineLayout = ctx->pipeline_layout;
+    ctx->Se_pipeline->pipeline_config_info.renderPass = ctx->Se_swapchain->getRenderPass();
+    ctx->Se_pipeline->pipeline_config_info.pipelineLayout = pipeline_layout;
     ctx->Se_pipeline->createGraphicsPipeline();
 
 }
@@ -51,14 +52,14 @@ void SeRenderer::createPipeline()
 
 void SeRenderer::createCommandBuffers()
 {
-    ctx->command_buffers.resize(ctx->Se_swapchain->imageCount());
+    command_buffers.resize(ctx->Se_swapchain->imageCount());
 
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = ctx->command_pool;
-    allocInfo.commandBufferCount = static_cast<uint32_t>(ctx->command_buffers.size());
-    if (vkAllocateCommandBuffers(ctx->device, &allocInfo, ctx->command_buffers.data()) != VK_SUCCESS)
+    allocInfo.commandPool = ctx->Se_device->command_pool;
+    allocInfo.commandBufferCount = static_cast<uint32_t>(command_buffers.size());
+    if (vkAllocateCommandBuffers(ctx->Se_device->device, &allocInfo, command_buffers.data()) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to allocate command buffers!");
     }
@@ -74,18 +75,18 @@ void SeRenderer::recreateSwapChain(int imageIndex)
         extent = {static_cast<uint32_t>(ctx->Se_window->width), static_cast<uint32_t>(ctx->Se_window->height)};
         glfwWaitEvents();
     }
-    vkDeviceWaitIdle(ctx->device);
+    vkDeviceWaitIdle(ctx->Se_device->device);
     
     std::vector<VkFramebuffer> framebuffers = ctx->Se_swapchain->swapChainFramebuffers;
     for (size_t i = 0; i < framebuffers.size(); i++) {
-        vkDestroyFramebuffer(ctx->device, framebuffers[i], nullptr);
+        vkDestroyFramebuffer(ctx->Se_device->device, framebuffers[i], nullptr);
     }
 
     std::vector<VkImageView> imageViews = ctx->Se_swapchain->swapChainImageViews;
     for (size_t i = 0; i < imageViews.size(); i++) {
-        vkDestroyImageView(ctx->device, imageViews[i], nullptr);
+        vkDestroyImageView(ctx->Se_device->device, imageViews[i], nullptr);
     }
-    vkDestroySwapchainKHR(ctx->device, ctx->swap_chain, nullptr);
+    vkDestroySwapchainKHR(ctx->Se_device->device, ctx->Se_swapchain->swap_chain, nullptr);
     ctx->Se_swapchain->createSwapChain();
     ctx->Se_swapchain->createImageViews();
     ctx->Se_swapchain->createFramebuffers();
@@ -98,14 +99,14 @@ void SeRenderer::recordCommandBuffer(int imageIndex)
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-    if (vkBeginCommandBuffer(ctx->command_buffers[imageIndex], &beginInfo) != VK_SUCCESS)
+    if (vkBeginCommandBuffer(command_buffers[imageIndex], &beginInfo) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to begin command buffer recording!");
     }
 
     VkRenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = ctx->render_pass;
+    renderPassInfo.renderPass = ctx->Se_swapchain->render_pass;
     renderPassInfo.framebuffer = ctx->Se_swapchain->getFrameBuffer(imageIndex);
     renderPassInfo.renderArea.offset.x = 0;
     renderPassInfo.renderArea.offset.y = 0;
@@ -117,14 +118,14 @@ void SeRenderer::recordCommandBuffer(int imageIndex)
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
     renderPassInfo.pClearValues = clearValues.data();
 
-    vkCmdBeginRenderPass(ctx->command_buffers[imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(command_buffers[imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    ctx->Se_pipeline->bind(ctx->command_buffers[imageIndex]);
-    ctx->Se_model->bind(ctx->command_buffers[imageIndex]);
-    ctx->Se_model->draw(ctx->command_buffers[imageIndex]);
-    // OLD: vkCmdDraw(ctx->command_buffers[i], 3, 1, 0, 0);
-    vkCmdEndRenderPass(ctx->command_buffers[imageIndex]);
-    if (vkEndCommandBuffer(ctx->command_buffers[imageIndex]) != VK_SUCCESS)
+    ctx->Se_pipeline->bind(command_buffers[imageIndex]);
+    ctx->Se_model->bind(command_buffers[imageIndex]);
+    ctx->Se_model->draw(command_buffers[imageIndex]);
+    // OLD: vkCmdDraw(command_buffers[i], 3, 1, 0, 0);
+    vkCmdEndRenderPass(command_buffers[imageIndex]);
+    if (vkEndCommandBuffer(command_buffers[imageIndex]) != VK_SUCCESS)
     {
         
         throw std::runtime_error("failed to end command buffer recording!");
@@ -148,7 +149,7 @@ void SeRenderer::drawFrame()
 
     recordCommandBuffer(imageIndex);
 
-    result = ctx->Se_swapchain->submitCommandBuffers(&ctx->command_buffers[imageIndex], &imageIndex);
+    result = ctx->Se_swapchain->submitCommandBuffers(&command_buffers[imageIndex], &imageIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || ctx->Se_window->framebufferResized)
     {
         ctx->Se_window->framebufferResized = false;

@@ -29,7 +29,7 @@ includedirs
 {
     "include/",
     "vendor/",
-    os.getenv("VULKAN_SDK") .. "/Include/"
+    "vendor/vulkan/"
 }
 
 libdirs

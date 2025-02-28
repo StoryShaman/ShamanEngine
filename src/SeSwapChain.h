@@ -24,8 +24,7 @@ public:
     void createRenderPass();
     void createSyncObjects();
 
-    std::vector<VkImageView> swapChainImageViews;
-    std::vector<VkFramebuffer> swapChainFramebuffers;
+    
 
     VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers[index]; }
     std::vector<VkFramebuffer> getFrameBuffers() { return swapChainFramebuffers; }
@@ -46,6 +45,11 @@ public:
     VkResult acquireNextImage(uint32_t *imageIndex);
     VkResult submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex);
 
+public:
+    VkSwapchainKHR swap_chain;
+    VkRenderPass render_pass;
+    std::vector<VkImageView> swapChainImageViews;
+    std::vector<VkFramebuffer> swapChainFramebuffers;
 private:
     
     
