@@ -59,14 +59,14 @@ void ShamanEngine::init()
 {
     ctx = std::make_shared<VulkanContext>();
     ctx->Se_engine = this;
-    createInstance();
-    setupDebugMessenger();
     ctx->Se_window = new SeWindow(ctx);
+    createInstance();
+    ctx->Se_window->createWindowSurface();
+    setupDebugMessenger();
     ctx->Se_device = new SeDevice(ctx);
     ctx->Se_swapchain = new SeSwapChain(ctx);
     ctx->Se_renderer = new SeRenderer(ctx);
-   
-    std::cout << &ctx << std::endl;
+  
 }
 
 void ShamanEngine::createInstance()

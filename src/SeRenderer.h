@@ -20,7 +20,7 @@ public:
     void createCommandBuffers();
     void recreateSwapChain(int imageIndex);
     void recordCommandBuffer(int imageIndex);
-
+    void freeCommandBuffers();
     void drawFrame();
 
 public:
@@ -35,6 +35,5 @@ private:
     
     
 };
-
     
 };

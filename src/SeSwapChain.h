@@ -12,6 +12,7 @@ public:
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
     SeSwapChain(std::shared_ptr<VulkanContext> inctx);
+    SeSwapChain(std::shared_ptr<VulkanContext> inctx, std::shared_ptr<SeSwapChain> previous);
     ~SeSwapChain();
 
     SeSwapChain(const SeSwapChain &) = delete;
@@ -23,6 +24,7 @@ public:
     void createDepthResources();
     void createRenderPass();
     void createSyncObjects();
+    void cleanupSwapChain();
 
     
 
@@ -46,14 +48,16 @@ public:
     VkResult submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex);
 
 public:
-    VkSwapchainKHR swap_chain;
-    VkRenderPass render_pass;
+    VkSwapchainKHR swap_chain{};
+    VkRenderPass render_pass{};
     std::vector<VkImageView> swapChainImageViews;
+    std::vector<VkImageView> depthImageViews;
     std::vector<VkFramebuffer> swapChainFramebuffers;
 private:
     
     
-
+    void init();
+    
     // Helper functions
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(
       const std::vector<VkSurfaceFormatKHR> &availableFormats);
@@ -63,13 +67,13 @@ private:
 
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
-
+    std::unique_ptr<VkSwapchainKHR> oldSwapChain = nullptr;
     
     VkRenderPass renderPass;
 
     std::vector<VkImage> depthImages;
     std::vector<VkDeviceMemory> depthImageMemorys;
-    std::vector<VkImageView> depthImageViews;
+    
     std::vector<VkImage> swapChainImages;
     
     

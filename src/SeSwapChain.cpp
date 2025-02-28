@@ -16,12 +16,7 @@ namespace SE {
 
 SeSwapChain::SeSwapChain(std::shared_ptr<VulkanContext> inctx) {
   ctx = inctx;
-  createSwapChain();
-  createImageViews();
-  createRenderPass();
-  createDepthResources();
-  createFramebuffers();
-  createSyncObjects();
+  init();
 }
 
 SeSwapChain::~SeSwapChain() {
@@ -123,6 +118,16 @@ VkResult SeSwapChain::submitCommandBuffers(
   return result;
 }
 
+void SeSwapChain::init()
+{
+  createSwapChain();
+  createImageViews();
+  createRenderPass();
+  createDepthResources();
+  createFramebuffers();
+  createSyncObjects();
+}
+
 void SeSwapChain::createSwapChain() {
   SwapChainSupportDetails swapChainSupport = ctx->Se_device->getSwapChainSupport();
 
@@ -166,7 +171,7 @@ void SeSwapChain::createSwapChain() {
   createInfo.presentMode = presentMode;
   createInfo.clipped = VK_TRUE;
 
-  createInfo.oldSwapchain = VK_NULL_HANDLE;
+  createInfo.oldSwapchain = oldSwapChain == nullptr ? VK_NULL_HANDLE : *oldSwapChain;
   VkResult result = vkCreateSwapchainKHR(ctx->Se_device->device, &createInfo, nullptr, &swap_chain);
   if (result != VK_SUCCESS) {
     std::cerr << result;
@@ -199,10 +204,12 @@ void SeSwapChain::createImageViews() {
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = 1;
 
-    if (vkCreateImageView(ctx->Se_device->device, &viewInfo, nullptr, &swapChainImageViews[i]) !=
-        VK_SUCCESS) {
+    VkResult result = vkCreateImageView(ctx->Se_device->device, &viewInfo, nullptr, &swapChainImageViews[i]);
+    
+    if (result != VK_SUCCESS) {
       throw std::runtime_error("failed to create texture image view!");
     }
+    
   }
 }
 
@@ -268,8 +275,9 @@ void SeSwapChain::createRenderPass() {
 }
 
 void SeSwapChain::createFramebuffers() {
-  swapChainFramebuffers.resize(imageCount());
-  for (size_t i = 0; i < imageCount(); i++) {
+  
+  swapChainFramebuffers.resize(swapChainImages.size());
+  for (size_t i = 0; i < swapChainImages.size(); i++) {
     std::array<VkImageView, 2> attachments = {swapChainImageViews[i], depthImageViews[i]};
 
 
@@ -278,15 +286,17 @@ void SeSwapChain::createFramebuffers() {
     framebufferInfo.renderPass = render_pass;
     framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
     framebufferInfo.pAttachments = attachments.data();
-    framebufferInfo.width = ctx->Se_window->width;
-    framebufferInfo.height = ctx->Se_window->height;
+    framebufferInfo.width = swapChainExtent.width;
+    framebufferInfo.height = swapChainExtent.height;
     framebufferInfo.layers = 1;
 
-    if (vkCreateFramebuffer(
+    VkResult result = vkCreateFramebuffer(
             ctx->Se_device->device,
             &framebufferInfo,
             nullptr,
-            &swapChainFramebuffers[i]) != VK_SUCCESS) {
+            &swapChainFramebuffers[i]);
+    
+    if ( result != VK_SUCCESS) {
       throw std::runtime_error("failed to create framebuffer!");
     }
   }
@@ -303,8 +313,8 @@ void SeSwapChain::createDepthResources() {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width = ctx->Se_window->width;
-    imageInfo.extent.height = ctx->Se_window->height;
+    imageInfo.extent.width = swapChainExtent.width;
+    imageInfo.extent.height = swapChainExtent.height;
     imageInfo.extent.depth = 1;
     imageInfo.mipLevels = 1;
     imageInfo.arrayLayers = 1;
@@ -362,6 +372,27 @@ void SeSwapChain::createSyncObjects() {
     }
   }
 }
+
+void SeSwapChain::cleanupSwapChain()
+{
+  for (size_t i = 0; i < swapChainFramebuffers.size(); i++)
+  {
+    vkDestroyFramebuffer(ctx->Se_device->device, swapChainFramebuffers[i], nullptr);
+  }
+
+  for (size_t i = 0; i < swapChainImageViews.size(); i++)
+  {
+    vkDestroyImageView(ctx->Se_device->device, swapChainImageViews[i], nullptr);
+  }
+
+  for (size_t i = 0; i < depthImageViews.size(); i++)
+  {
+    vkDestroyImageView(ctx->Se_device->device, depthImageViews[i], nullptr);
+  }
+
+  vkDestroySwapchainKHR(ctx->Se_device->device, swap_chain, nullptr);
+}
+
 
 VkSurfaceFormatKHR SeSwapChain::chooseSwapSurfaceFormat(
     const std::vector<VkSurfaceFormatKHR> &availableFormats) {

@@ -123,10 +123,6 @@
     <None Include="shaders\compileshaders.bat" />
     <None Include="shaders\simple_shader.frag" />
     <None Include="shaders\simple_shader.vert" />
-    <None Include="shaders\simple_shader_frag.spv" />
-    <None Include="shaders\simple_shader_vert.spv" />
-    <None Include="shaders\simple_shaderold.frag" />
-    <None Include="shaders\simple_shaderold.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

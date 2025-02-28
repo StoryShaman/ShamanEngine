@@ -8,7 +8,7 @@ SeWindow::SeWindow(std::shared_ptr<VulkanContext> inctx)
 {
     ctx = inctx;
     initWindow();
-    createWindowSurface();
+    
     glfwGetWindowSize(window, &width, &height);
 }
 

@@ -23,6 +23,8 @@ public:
         VkPipelineColorBlendAttachmentState colorBlendAttachment;
         VkPipelineColorBlendStateCreateInfo colorBlendInfo;
         VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
+        std::vector<VkDynamicState> dynamicStateEnables;
+        VkPipelineDynamicStateCreateInfo dynamicStateInfo;
         VkPipelineLayout pipelineLayout = nullptr;
         VkRenderPass renderPass = nullptr;
         uint32_t subpass = 0;
@@ -36,14 +38,15 @@ public:
 
     void bind(VkCommandBuffer commandBuffer);
     
-    void defaultPipelineConfigInfo(uint32_t width, uint32_t height);
+    void defaultPipelineConfigInfo();
 
     void createGraphicsPipeline();
+    void recreateGraphicsPipeline();
 
 public:
 
     VkPipeline pipeline;
-    PipelineConfigInfo pipeline_config_info;
+    PipelineConfigInfo pipeline_config_info{};
     VkShaderModule vert_shader_module;
     VkShaderModule frag_shader_module;
     

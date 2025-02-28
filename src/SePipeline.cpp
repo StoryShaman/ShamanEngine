@@ -5,6 +5,7 @@
 #include <fstream>
 #include <ios>
 #include <iostream>
+#include <vulkan/vk_enum_string_helper.h>
 
 #include "SeDevice.h"
 #include "SeModel.h"
@@ -28,23 +29,20 @@ void SePipeline::bind(VkCommandBuffer commandBuffer)
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 }
 
-void SePipeline::defaultPipelineConfigInfo(uint32_t width, uint32_t height)
+void SePipeline::defaultPipelineConfigInfo()
 {
     //PipelineConfigInfo configInfo{};
     pipeline_config_info.inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     pipeline_config_info.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     pipeline_config_info.inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
+ 
 
     // viewport
-    pipeline_config_info.viewport.x = 0.0f;
-    pipeline_config_info.viewport.y = 0.0f;
-    pipeline_config_info.viewport.width = static_cast<float>(width);
-    pipeline_config_info.viewport.height = static_cast<float>(height);
-    pipeline_config_info.viewport.minDepth = 0.0f;
-    pipeline_config_info.viewport.maxDepth = 1.0f;
-
-    pipeline_config_info.scissor.offset = {0, 0};
-    pipeline_config_info.scissor.extent = {width, height};
+    pipeline_config_info.viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    pipeline_config_info.viewportInfo.viewportCount = 1;
+    pipeline_config_info.viewportInfo.pViewports = nullptr;
+    pipeline_config_info.viewportInfo.scissorCount = 1;
+    pipeline_config_info.viewportInfo.pScissors = nullptr;
 
     // rasterizationInfo
     pipeline_config_info.rasterizationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -86,7 +84,7 @@ void SePipeline::defaultPipelineConfigInfo(uint32_t width, uint32_t height)
     pipeline_config_info.colorBlendInfo.blendConstants[1] = 0.0f;  // Optional
     pipeline_config_info.colorBlendInfo.blendConstants[2] = 0.0f;  // Optional
     pipeline_config_info.colorBlendInfo.blendConstants[3] = 0.0f;  // Optional
-    std::cout << pipeline_config_info.colorBlendInfo.pAttachments;
+
  
     pipeline_config_info.depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     pipeline_config_info.depthStencilInfo.depthTestEnable = VK_TRUE;
@@ -98,6 +96,13 @@ void SePipeline::defaultPipelineConfigInfo(uint32_t width, uint32_t height)
     pipeline_config_info.depthStencilInfo.stencilTestEnable = VK_FALSE;
     pipeline_config_info.depthStencilInfo.front = {};  // Optional
     pipeline_config_info.depthStencilInfo.back = {};   // Optional
+
+    pipeline_config_info.dynamicStateEnables = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+    pipeline_config_info.dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    pipeline_config_info.dynamicStateInfo.pDynamicStates = pipeline_config_info.dynamicStateEnables.data();
+    pipeline_config_info.dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(pipeline_config_info.dynamicStateEnables.size());
+    pipeline_config_info.dynamicStateInfo.flags = 0;
+    
     
 }
 
@@ -158,8 +163,11 @@ void SePipeline::createGraphicsPipeline()
     pipeline_config_info.vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
     pipeline_config_info.vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
     pipeline_config_info.vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
-    
 
+/*
+    pipeline_config_info.viewport.width = ctx->Se_swapchain->getSwapChainExtent().width;
+    pipeline_config_info.viewport.height = ctx->Se_swapchain->getSwapChainExtent().height;
+    pipeline_config_info.scissor.extent = ctx->Se_swapchain->getSwapChainExtent();
 
     // VkPipelineViewportStateCreateInfo 
     pipeline_config_info.viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -167,7 +175,7 @@ void SePipeline::createGraphicsPipeline()
     pipeline_config_info.viewportInfo.pViewports = &pipeline_config_info.viewport;
     pipeline_config_info.viewportInfo.scissorCount = 1;
     pipeline_config_info.viewportInfo.pScissors = &pipeline_config_info.scissor;
-
+*/
     // VkGraphicsPipelineCreateInf 
     pipeline_config_info.graphicsPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipeline_config_info.graphicsPipelineInfo.pNext = nullptr;
@@ -182,7 +190,7 @@ void SePipeline::createGraphicsPipeline()
     pipeline_config_info.graphicsPipelineInfo.pMultisampleState = &pipeline_config_info.multisampleInfo;
     pipeline_config_info.graphicsPipelineInfo.pDepthStencilState = &pipeline_config_info.depthStencilInfo;
     pipeline_config_info.graphicsPipelineInfo.pColorBlendState = &pipeline_config_info.colorBlendInfo;
-    pipeline_config_info.graphicsPipelineInfo.pDynamicState = nullptr;
+    pipeline_config_info.graphicsPipelineInfo.pDynamicState = &pipeline_config_info.dynamicStateInfo;
     pipeline_config_info.graphicsPipelineInfo.layout = pipeline_config_info.pipelineLayout;
     pipeline_config_info.graphicsPipelineInfo.renderPass = ctx->Se_swapchain->render_pass;
     pipeline_config_info.graphicsPipelineInfo.subpass = pipeline_config_info.subpass;
@@ -190,6 +198,7 @@ void SePipeline::createGraphicsPipeline()
     pipeline_config_info.graphicsPipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
     VkResult result = vkCreateGraphicsPipelines(ctx->Se_device->device, VK_NULL_HANDLE, 1, &pipeline_config_info.graphicsPipelineInfo, nullptr, &pipeline);
+    string_VkResult(result);
     if (result != VK_SUCCESS)
     {
         std::cout << "Failed to create graphics pipeline: " << result << std::endl;
@@ -197,6 +206,15 @@ void SePipeline::createGraphicsPipeline()
     }
 
     
+    
+}
+
+void SePipeline::recreateGraphicsPipeline()
+{
+    vkDestroyShaderModule(ctx->Se_device->device, frag_shader_module, nullptr);
+    vkDestroyShaderModule(ctx->Se_device->device, vert_shader_module, nullptr);
+    vkDestroyPipeline(ctx->Se_device->device, pipeline, nullptr);
+    createGraphicsPipeline();
     
 }
 
