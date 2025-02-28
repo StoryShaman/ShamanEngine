@@ -26,7 +26,7 @@ struct VulkanContext
     SePipeline* Se_pipeline = nullptr;
     SeSwapChain* Se_swapchain = nullptr;
     SeRenderer* Se_renderer = nullptr;
-    std::unique_ptr<SeModel> Se_model = nullptr;
+    std::shared_ptr<SeModel> Se_model = nullptr;
 
     
     

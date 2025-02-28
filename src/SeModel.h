@@ -3,9 +3,11 @@
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <GLM/glm.hpp>
+#include <GLM/gtc/constants.hpp>
 #include <memory>
 #include <vector>
-#include <GLM/glm.hpp>
+
 
 namespace SE {
 struct VulkanContext;

@@ -4,6 +4,10 @@
 #include "SePipeline.h"
 
 namespace SE {
+class SeObject;
+}
+
+namespace SE {
 struct VulkanContext;
 }
 
@@ -20,6 +24,7 @@ public:
     void createCommandBuffers();
     void recreateSwapChain(int imageIndex);
     void recordCommandBuffer(int imageIndex);
+    void renderObjects(VkCommandBuffer commandBuffer);
     void freeCommandBuffers();
     void drawFrame();
 
@@ -28,9 +33,11 @@ public:
     std::vector<VkCommandBuffer> command_buffers;
     VkPipelineLayout pipeline_layout;
     std::shared_ptr<VulkanContext> ctx;
+    std::vector<SeObject> objects;
 
 private:
     void loadModel();
+    void loadObjects();
 
     
     
