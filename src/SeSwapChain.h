@@ -12,12 +12,13 @@ public:
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
     SeSwapChain(std::shared_ptr<VulkanContext> inctx);
-    SeSwapChain(std::shared_ptr<VulkanContext> inctx, std::shared_ptr<SeSwapChain> previous);
+    
+
+    SeSwapChain(const SeSwapChain&) = delete;
+    SeSwapChain& operator=(const SeSwapChain&) = delete;
+
+    SeSwapChain(std::shared_ptr<VulkanContext> inctx, SeSwapChain* previous);
     ~SeSwapChain();
-
-    SeSwapChain(const SeSwapChain &) = delete;
-    SeSwapChain& operator=(const SeSwapChain &) = delete;
-
     void createSwapChain();
     void createFramebuffers();
     void createImageViews();
@@ -27,7 +28,7 @@ public:
     void cleanupSwapChain();
 
     
-
+    // Getters
     VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers[index]; }
     std::vector<VkFramebuffer> getFrameBuffers() { return swapChainFramebuffers; }
     VkRenderPass getRenderPass() { return renderPass; }
@@ -38,14 +39,19 @@ public:
     VkExtent2D getSwapChainExtent() { return swapChainExtent; }
     uint32_t width() { return swapChainExtent.width; }
     uint32_t height() { return swapChainExtent.height; }
-
     float extentAspectRatio() {
       return static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);
     }
-    VkFormat findDepthFormat();
 
+    bool compareOldSwapFormats()
+    {
+        return oldSwapChain->swapChainImageFormat == swapChainImageFormat && oldSwapChain->swapChainDepthFormat == swapChainDepthFormat;
+    }
+    VkFormat findDepthFormat();
     VkResult acquireNextImage(uint32_t *imageIndex);
     VkResult submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex);
+
+    void clearOldSwapChain();
 
 public:
     VkSwapchainKHR swap_chain{};
@@ -65,15 +71,15 @@ private:
       const std::vector<VkPresentModeKHR> &availablePresentModes);
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
-    VkFormat swapChainImageFormat;
-    VkExtent2D swapChainExtent;
-    std::unique_ptr<VkSwapchainKHR> oldSwapChain = nullptr;
-    
-    VkRenderPass renderPass;
 
+    
+    VkFormat swapChainImageFormat{};
+    VkFormat swapChainDepthFormat{};
+    VkExtent2D swapChainExtent{};
+    SeSwapChain* oldSwapChain = nullptr;
+    VkRenderPass renderPass{};
     std::vector<VkImage> depthImages;
     std::vector<VkDeviceMemory> depthImageMemorys;
-    
     std::vector<VkImage> swapChainImages;
     
     

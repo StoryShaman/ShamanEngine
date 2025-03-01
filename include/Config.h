@@ -3,10 +3,11 @@
 #include <string>
 #include <fstream>
 #include <iostream>
-
+#include <sstream>
 
 
 namespace SE {
+
 class Config {
 public:
     static Config& get() {
@@ -19,6 +20,14 @@ public:
     #else
         const bool enableValidationLayers = true;
     #endif
+
+    bool stringToBool(const std::string& str) {
+        std::istringstream iss(str);
+        bool result;
+        iss >> std::boolalpha >> result; // Use boolalpha to parse "true"/"false"
+        return result;
+    }
+
     
     // Public accessors (read-only outside class)
     auto window() const { return window_; }
@@ -27,6 +36,8 @@ public:
     const std::string& model_path() const { return model_path_; }
     const std::string& texture_path() const { return texture_path_; }
     const std::string& shader_path() const { return shader_path_; }
+    const bool& print_extensions_to_console() const { return print_extensions_to_console_; }
+    const bool& print_device_info() const { return print_device_info_; }
     
     // Load config from file
     void load_from_file(const std::string& filename) {
@@ -60,6 +71,8 @@ public:
             else if (key == "model_path") model_path_ = value;
             else if (key == "texture_path") texture_path_ = value;
             else if (key == "shader_path") shader_path_ = value;
+            else if (key == "print_extensions_to_console") print_extensions_to_console_ = stringToBool(value);
+            else if (key == "print_device_info") print_device_info_ = stringToBool(value);
             
         }
         
@@ -83,6 +96,8 @@ private:
         , model_path_("models/")
         , texture_path_("textures/")
         , shader_path_("shaders/")
+        , print_extensions_to_console_(false)
+        , print_device_info_(false)
     {
         // Load config at construction (could move to main if preferred)
         load_from_file("config/config.ini");
@@ -95,5 +110,7 @@ private:
     std::string model_path_;
     std::string texture_path_;
     std::string shader_path_;
+    bool print_extensions_to_console_;
+    bool print_device_info_;
 };
 }

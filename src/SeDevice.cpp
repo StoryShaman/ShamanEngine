@@ -36,7 +36,7 @@ void SeDevice::pickPhysicalDevice() {
   if (deviceCount == 0) {
     throw std::runtime_error("failed to find GPUs with Vulkan support!");
   }
-  std::cout << "Device count: " << deviceCount << std::endl;
+  
   std::vector<VkPhysicalDevice> devices(deviceCount);
   vkEnumeratePhysicalDevices(ctx->Se_engine->instance, &deviceCount, devices.data());
 
@@ -52,7 +52,13 @@ void SeDevice::pickPhysicalDevice() {
   }
 
   vkGetPhysicalDeviceProperties(physical_device, &properties);
-  std::cout << "physical device: " << properties.deviceName << std::endl;
+  
+  if (Config::get().print_device_info())
+  {
+    std::cout << "Device count: " << deviceCount << std::endl;
+    std::cout << "physical device: " << properties.deviceName << std::endl;
+  }
+  
 }
 
 void SeDevice::createLogicalDevice() {

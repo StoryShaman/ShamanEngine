@@ -117,23 +117,24 @@ void ShamanEngine::hasGflwRequiredInstanceExtensions() {
     std::vector<VkExtensionProperties> extensions(extensionCount);
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
 
-    
-      std::cout << "available extensions:" << std::endl;
-      std::unordered_set<std::string> available;
-      for (const auto &extension : extensions) {
-        std::cout << "\t" << extension.extensionName << std::endl;
-        available.insert(extension.extensionName);
-      }
-    
-      std::cout << "required extensions:" << std::endl;
-      auto requiredExtensions = getRequiredExtensions();
-      for (const auto &required : requiredExtensions) {
-        std::cout << "\t" << required << std::endl;
-        if (available.find(required) == available.end()) {
-          throw std::runtime_error("Missing required glfw extension");
+    if (Config::get().print_extensions_to_console())
+    {
+        std::cout << "available extensions:" << std::endl;
+        std::unordered_set<std::string> available;
+        for (const auto &extension : extensions) {
+            std::cout << "\t" << extension.extensionName << std::endl;
+            available.insert(extension.extensionName);
         }
-      }
-      
+    
+        std::cout << "required extensions:" << std::endl;
+        auto requiredExtensions = getRequiredExtensions();
+        for (const auto &required : requiredExtensions) {
+            std::cout << "\t" << required << std::endl;
+            if (available.find(required) == available.end()) {
+                throw std::runtime_error("Missing required glfw extension");
+            }
+        }
+    }
 }
 
 std::vector<const char *> ShamanEngine::getRequiredExtensions() {
@@ -214,7 +215,13 @@ void ShamanEngine::run()
     while (!ctx->Se_window->shouldClose())
     {
         glfwPollEvents();
-        ctx->Se_renderer->drawFrame();
+        if (auto commandBuffer = ctx->Se_renderer->beginFrame())
+        {
+            ctx->Se_renderer->beginSwapChainRenderPass(commandBuffer);
+            ctx->Se_renderer->renderObjects(commandBuffer);
+            ctx->Se_renderer->endSwapChainRenderPass(commandBuffer);
+            ctx->Se_renderer->endFrame();
+        }
     }
     vkDeviceWaitIdle(ctx->Se_device->device);
 }

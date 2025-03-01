@@ -19,7 +19,15 @@ SeSwapChain::SeSwapChain(std::shared_ptr<VulkanContext> inctx) {
   init();
 }
 
+SeSwapChain::SeSwapChain(std::shared_ptr<VulkanContext> inctx, SeSwapChain* previous)
+{
+  ctx = inctx;
+  oldSwapChain = previous;
+  init();
+}
+
 SeSwapChain::~SeSwapChain() {
+  
   for (auto imageView : swapChainImageViews) {
     vkDestroyImageView(ctx->Se_device->device, imageView, nullptr);
   }
@@ -35,6 +43,7 @@ SeSwapChain::~SeSwapChain() {
     vkDestroyImage(ctx->Se_device->device, depthImages[i], nullptr);
     vkFreeMemory(ctx->Se_device->device, depthImageMemorys[i], nullptr);
   }
+  depthImageViews.clear();
 
   for (auto framebuffer : swapChainFramebuffers) {
     vkDestroyFramebuffer(ctx->Se_device->device, framebuffer, nullptr);
@@ -48,6 +57,7 @@ SeSwapChain::~SeSwapChain() {
     vkDestroySemaphore(ctx->Se_device->device, imageAvailableSemaphores[i], nullptr);
     vkDestroyFence(ctx->Se_device->device, inFlightFences[i], nullptr);
   }
+  
 }
 
 VkResult SeSwapChain::acquireNextImage(uint32_t *imageIndex) {
@@ -118,6 +128,11 @@ VkResult SeSwapChain::submitCommandBuffers(
   return result;
 }
 
+void SeSwapChain::clearOldSwapChain()
+{
+  delete oldSwapChain;
+}
+
 void SeSwapChain::init()
 {
   createSwapChain();
@@ -171,8 +186,10 @@ void SeSwapChain::createSwapChain() {
   createInfo.presentMode = presentMode;
   createInfo.clipped = VK_TRUE;
 
-  createInfo.oldSwapchain = oldSwapChain == nullptr ? VK_NULL_HANDLE : *oldSwapChain;
+  createInfo.oldSwapchain = oldSwapChain == nullptr ? VK_NULL_HANDLE : oldSwapChain->swap_chain;
   VkResult result = vkCreateSwapchainKHR(ctx->Se_device->device, &createInfo, nullptr, &swap_chain);
+  
+
   if (result != VK_SUCCESS) {
     std::cerr << result;
     throw std::runtime_error("failed to create swap chain!");
@@ -251,13 +268,10 @@ void SeSwapChain::createRenderPass() {
   VkSubpassDependency dependency = {};
   dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
   dependency.srcAccessMask = 0;
-  dependency.srcStageMask =
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+  dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
   dependency.dstSubpass = 0;
-  dependency.dstStageMask =
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-  dependency.dstAccessMask =
-      VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+  dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+  dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
   std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
   VkRenderPassCreateInfo renderPassInfo = {};
@@ -304,7 +318,7 @@ void SeSwapChain::createFramebuffers() {
 
 void SeSwapChain::createDepthResources() {
   VkFormat depthFormat = findDepthFormat();
-
+  swapChainDepthFormat = depthFormat;
   depthImages.resize(imageCount());
   depthImageMemorys.resize(imageCount());
   depthImageViews.resize(imageCount());
@@ -389,7 +403,6 @@ void SeSwapChain::cleanupSwapChain()
   {
     vkDestroyImageView(ctx->Se_device->device, depthImageViews[i], nullptr);
   }
-
   vkDestroySwapchainKHR(ctx->Se_device->device, swap_chain, nullptr);
 }
 

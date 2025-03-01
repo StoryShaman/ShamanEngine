@@ -23,11 +23,31 @@ public:
     void createPipeline();
     void createCommandBuffers();
     void recreateSwapChain(int imageIndex);
-    void recordCommandBuffer(int imageIndex);
     void renderObjects(VkCommandBuffer commandBuffer);
     void freeCommandBuffers();
-    void drawFrame();
+    void loadCubeModel(glm::vec3 offset);
 
+    VkCommandBuffer beginFrame();
+    void endFrame();
+    void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
+    void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
+    
+    
+    void drawFrame();
+    
+    bool isFrameInProgress() const { return bFrameInProgress; }
+    VkCommandBuffer getCurrentCommandBuffer() const
+    {
+        assert(isFrameInProgress() && "Cannot get frame index when frame not in progress");
+        return command_buffers[currentFrameIndex];
+    }
+    
+    int SeRenderer::getFrameIndex() const
+    {
+        assert(isFrameInProgress() && "Cannot get frame index when frame not in progress");
+        return currentFrameIndex;
+    }
+    
 public:
     
     std::vector<VkCommandBuffer> command_buffers;
@@ -38,9 +58,17 @@ public:
 private:
     void loadModel();
     void loadObjects();
+    
+    
+private:
 
+    bool bFrameInProgress = false;
+    uint32_t currentImageIndex;
+    int currentFrameIndex = 0;
     
     
 };
-    
+
+
+
 };
