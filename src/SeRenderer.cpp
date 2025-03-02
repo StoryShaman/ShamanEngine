@@ -1,6 +1,7 @@
 ﻿#include "SeRenderer.h"
 
 #include <array>
+#include <chrono>
 #include <iostream>
 #include <stdexcept>
 
@@ -108,18 +109,18 @@ void SeRenderer::createCommandBuffers()
     
 }
 
-void SeRenderer::renderObjects(VkCommandBuffer commandBuffer)
+void SeRenderer::renderObjects(VkCommandBuffer commandBuffer, SeCamera &camera)
 {
-    
     ctx->Se_pipeline->bind(commandBuffer);
+
+    auto projectionView = camera.getProjectionMatrix() * camera.getViewMatrix();
+    
     for (auto& obj: objects)
     {
-        obj.transform.rotation.y = glm::mod(obj.transform.rotation.y + 0.0001f, glm::two_pi<float>());
-        obj.transform.rotation.x = glm::mod(obj.transform.rotation.x + 0.0001f, glm::two_pi<float>());
         
         SimplePushConstantData push{};
         push.color = obj.color;
-        push.transform = obj.transform.mat4();
+        push.transform = projectionView * obj.transform.mat4();
 
         vkCmdPushConstants(commandBuffer, pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);
         obj.model->bind(commandBuffer);
@@ -140,8 +141,9 @@ void SeRenderer::freeCommandBuffers()
 }
 
 VkCommandBuffer SeRenderer::beginFrame()
-{
+{    
     assert(!isFrameInProgress() && "Cannot call beginFrame() while frame is already in progress!");
+    updateFPS();
     // Grab a swap chain image
     auto result = ctx->Se_swapchain->acquireNextImage(&currentImageIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -243,11 +245,33 @@ void SeRenderer::loadObjects()
     loadCubeModel({0.f, 0.f, 0.f});
     SeObject cube = SeObject::createObject();
     cube.model = ctx->Se_model;
-    cube.transform.translation = { 0.f, 0.f, 0.5f };
+    cube.transform.translation = { 0.f, 0.f, 2.5f };
     cube.transform.scale = { 0.5f, 0.5f, 0.5f };
     objects.push_back(std::move(cube));
+
+    SeObject cube2 = SeObject::createObject();
+    cube2.model = ctx->Se_model;
+    cube2.transform.translation = { 3.f, 0.f, 5.5f };
+    cube2.transform.scale = { 0.5f, 0.5f, 0.5f };
+    objects.push_back(std::move(cube2));
 }
 
+void SeRenderer::updateFPS()
+{
+    frameCount++;
+    double currentTime = glfwGetTime();
+    double elapsedTime = currentTime - lastFPSTime;
+
+    // Update FPS every second
+    if (elapsedTime >= 1.0) {
+        avgFPS = frameCount / (float)elapsedTime;
+        std::cout << "Average FPS: " << avgFPS << std::endl;
+        
+        // Reset counters
+        frameCount = 0;
+        lastFPSTime = currentTime;
+    }
+}
 
 // temporary helper function, creates a 1x1x1 cube centered at offset
 void SeRenderer::loadCubeModel(glm::vec3 offset) {

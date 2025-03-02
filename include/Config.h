@@ -32,6 +32,7 @@ public:
     // Public accessors (read-only outside class)
     auto window() const { return window_; }
     const int max_frames_in_flight() const { return max_frames_in_flight_; }
+    const float max_frame_time() const { return max_frame_time_; }
     const std::string& asset_path() const { return asset_path_; }
     const std::string& model_path() const { return model_path_; }
     const std::string& texture_path() const { return texture_path_; }
@@ -67,6 +68,7 @@ public:
             else if (key == "width") window_.width = std::stoul(value);
             else if (key == "height") window_.height = std::stoul(value);
             else if (key == "max_frames_in_flight") max_frames_in_flight_ = std::stoi(value);
+            else if (key == "max_frame_time") max_frame_time_ = std::stoi(value);
             else if (key == "asset_path") asset_path_ = value;
             else if (key == "model_path") model_path_ = value;
             else if (key == "texture_path") texture_path_ = value;
@@ -92,6 +94,7 @@ private:
     Config() 
         : window_{ 1920, 1080 }
         , max_frames_in_flight_(2)
+        , max_frame_time_(2)
         , asset_path_("assets/")
         , model_path_("models/")
         , texture_path_("textures/")
@@ -106,6 +109,7 @@ private:
     // Member variables
     
     int max_frames_in_flight_;
+    float max_frame_time_;
     std::string asset_path_;
     std::string model_path_;
     std::string texture_path_;

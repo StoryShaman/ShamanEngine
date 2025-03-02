@@ -9,6 +9,7 @@
 
 
 namespace SE {
+class SeCamera;
 class SeSwapChain;
 class SeRenderer;
 class SeWindow;
@@ -26,6 +27,7 @@ struct VulkanContext
     SePipeline* Se_pipeline = nullptr;
     SeSwapChain* Se_swapchain = nullptr;
     SeRenderer* Se_renderer = nullptr;
+    SeCamera* Se_camera = nullptr;
     std::shared_ptr<SeModel> Se_model = nullptr;
 
     

@@ -100,6 +100,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\Config.h" />
+    <ClInclude Include="src\SeCamera.h" />
+    <ClInclude Include="src\SeController.h" />
     <ClInclude Include="src\SeDevice.h" />
     <ClInclude Include="src\SeModel.h" />
     <ClInclude Include="src\SeObject.h" />
@@ -111,6 +113,8 @@
     <ClInclude Include="src\vulkancontext.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\SeCamera.cpp" />
+    <ClCompile Include="src\SeController.cpp" />
     <ClCompile Include="src\SeDevice.cpp" />
     <ClCompile Include="src\SeModel.cpp" />
     <ClCompile Include="src\SeObject.cpp" />

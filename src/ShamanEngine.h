@@ -3,17 +3,20 @@
 #include <vector>
 #include <vulkan_core.h>
 
-namespace SE {
-    struct VulkanContext;
+#include "SeWindow.h"
 
-    class ShamanEngine
+namespace SE {
+
+struct VulkanContext;
+
+class ShamanEngine
 {
 public:
     ShamanEngine();
     ~ShamanEngine();
     void run();
     void init();
-    
+
 public:
     VkInstance instance;
     VkDebugUtilsMessengerEXT debug_messenger;

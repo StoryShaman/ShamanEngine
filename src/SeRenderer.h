@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <memory>
 
+#include "SeCamera.h"
 #include "SePipeline.h"
 
 namespace SE {
@@ -23,7 +24,7 @@ public:
     void createPipeline();
     void createCommandBuffers();
     void recreateSwapChain(int imageIndex);
-    void renderObjects(VkCommandBuffer commandBuffer);
+    void renderObjects(VkCommandBuffer commandBuffer, SeCamera &camera);
     void freeCommandBuffers();
     void loadCubeModel(glm::vec3 offset);
 
@@ -32,8 +33,6 @@ public:
     void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
     void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
     
-    
-    void drawFrame();
     
     bool isFrameInProgress() const { return bFrameInProgress; }
     VkCommandBuffer getCurrentCommandBuffer() const
@@ -47,6 +46,8 @@ public:
         assert(isFrameInProgress() && "Cannot get frame index when frame not in progress");
         return currentFrameIndex;
     }
+
+    int getDeltaTime() { return deltaTime; }
     
 public:
     
@@ -59,13 +60,19 @@ private:
     void loadModel();
     void loadObjects();
     
+    void updateFPS();
     
 private:
+
+    // FPS tracking
+    int frameCount = 0;         // Number of frames since last update
+    double lastFPSTime = 0.0;   // Time of last FPS update
+    float avgFPS = 0.0f;        // Calculated average FPS
 
     bool bFrameInProgress = false;
     uint32_t currentImageIndex;
     int currentFrameIndex = 0;
-    
+    int deltaTime = 0;
     
 };
 

@@ -1,12 +1,15 @@
 ﻿#include "ShamanEngine.h"
 
+#include <chrono>
 #include <iostream>
 #include <ostream>
 #include <unordered_set>
-#include <GLFW/glfw3.h>
+
 
 #include "Config.h"
+#include "SeController.h"
 #include "SeDevice.h"
+#include "SeObject.h"
 #include "SePipeline.h"
 #include "SeRenderer.h"
 #include "SeWindow.h"
@@ -53,7 +56,29 @@ ShamanEngine::~ShamanEngine()
     }
 }
 
+std::vector<const char *> ShamanEngine::getRequiredExtensions() {
+    uint32_t glfwExtensionCount = 0;
+    const char **glfwExtensions;
+    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
+    std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+    if (Config::get().enableValidationLayers) {
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    }
+
+    return extensions;
+}
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+    void *pUserData) {
+    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+
+    return VK_FALSE;
+}
 
 void ShamanEngine::init()
 {
@@ -66,6 +91,7 @@ void ShamanEngine::init()
     ctx->Se_device = new SeDevice(ctx);
     ctx->Se_swapchain = new SeSwapChain(ctx);
     ctx->Se_renderer = new SeRenderer(ctx);
+    ctx->Se_camera = new SeCamera(ctx);
   
 }
 
@@ -137,20 +163,6 @@ void ShamanEngine::hasGflwRequiredInstanceExtensions() {
     }
 }
 
-std::vector<const char *> ShamanEngine::getRequiredExtensions() {
-    uint32_t glfwExtensionCount = 0;
-    const char **glfwExtensions;
-    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-    std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-    if (Config::get().enableValidationLayers) {
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    }
-
-    return extensions;
-}
-
 bool ShamanEngine::checkValidationLayerSupport() {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -174,16 +186,6 @@ bool ShamanEngine::checkValidationLayerSupport() {
     }
 
     return true;
-}
-
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-    void *pUserData) {
-    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
-
-    return VK_FALSE;
 }
 
 void ShamanEngine::populateDebugMessengerCreateInfo(
@@ -210,15 +212,34 @@ void ShamanEngine::setupDebugMessenger() {
   
 }
 
+
 void ShamanEngine::run()
 {
+    auto cameraObject = SeObject::createObject();
+    SeController* cameraController = new SeController(ctx);
+    
+    ctx->Se_camera->setViewDirection(glm::vec3(0.f), glm::vec3(1.5f, 0.f, 0.f));
+    ctx->Se_camera->setViewTarget(glm::vec3(0.f, 0.f, -0.0000000001f), glm::vec3(0.0f, 0.0f, 0.f));
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    
     while (!ctx->Se_window->shouldClose())
     {
         glfwPollEvents();
+
+        auto newTime = std::chrono::high_resolution_clock::now();
+        float frameTime = std::chrono::duration<float>(newTime - currentTime).count();
+        frameTime = glm::min(frameTime, Config::get().max_frame_time());
+        currentTime = newTime;
+
+        cameraController->moveInPlaneXZ(ctx->Se_window->window, frameTime, cameraObject);
+        ctx->Se_camera->setViewYXZ(cameraObject.transform.translation, cameraObject.transform.rotation);
+        
+        float aspect = ctx->Se_swapchain->extentAspectRatio();
+        ctx->Se_camera->setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 1000.f);
         if (auto commandBuffer = ctx->Se_renderer->beginFrame())
         {
             ctx->Se_renderer->beginSwapChainRenderPass(commandBuffer);
-            ctx->Se_renderer->renderObjects(commandBuffer);
+            ctx->Se_renderer->renderObjects(commandBuffer, *ctx->Se_camera);
             ctx->Se_renderer->endSwapChainRenderPass(commandBuffer);
             ctx->Se_renderer->endFrame();
         }
