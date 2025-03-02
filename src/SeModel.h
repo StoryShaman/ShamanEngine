@@ -30,14 +30,21 @@ public:
     void bind(VkCommandBuffer commandBuffer);
     void draw(VkCommandBuffer commandBuffer);
 
+    VkBuffer getBuffer() const { return storageBuffer; }
+    uint32_t getVertexCount() const { return vertexCount; }
+
     
 
     private:
     void createVertexBuffer(const std::vector<Vertex>& vertices);
+    void createStorageBuffer(const std::vector<Vertex>& vertices);
     std::shared_ptr<VulkanContext> ctx;
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
+    VkBuffer storageBuffer;
+    VkDeviceMemory storageBufferMemory;
     uint32_t vertexCount;
+    
 };
 }
 

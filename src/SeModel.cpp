@@ -31,7 +31,7 @@ SeModel::SeModel(std::shared_ptr<VulkanContext> inctx, std::vector<Vertex>& vert
 {
     ctx = inctx;
     createVertexBuffer(vertices);
-    
+    createStorageBuffer(vertices);
 }
 
 SeModel::~SeModel()
@@ -69,5 +69,24 @@ void SeModel::createVertexBuffer(const std::vector<Vertex>& vertices)
     memcpy(data, vertices.data(), vertexBufferSize);
     vkUnmapMemory(ctx->Se_device->device, vertexBufferMemory);
     
+}
+void SeModel::createStorageBuffer(const std::vector<Vertex>& vertices)
+{
+    vertexCount = static_cast<uint32_t>(vertices.size());
+    assert(vertexCount >= 3 && "Vertex count must be greater than 3");
+    VkDeviceSize bufferSize = sizeof(Vertex) * vertexCount;
+
+    ctx->Se_device->createBuffer(
+        bufferSize,
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, // Change to SSBO
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        storageBuffer,
+        storageBufferMemory
+    );
+
+    void* data;
+    vkMapMemory(ctx->Se_device->device, storageBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, vertices.data(), bufferSize);
+    vkUnmapMemory(ctx->Se_device->device, storageBufferMemory);
 }
 }

@@ -19,14 +19,24 @@ SePipeline::SePipeline(std::shared_ptr<VulkanContext> inpctx)
 
 SePipeline::~SePipeline()
 {
-    vkDestroyShaderModule(ctx->Se_device->device, vert_shader_module, nullptr);
-    vkDestroyShaderModule(ctx->Se_device->device, frag_shader_module, nullptr);
-    vkDestroyPipeline(ctx->Se_device->device, pipeline, nullptr);
+    if (vert_shader_module != VK_NULL_HANDLE) {
+        vkDestroyShaderModule(ctx->Se_device->device, vert_shader_module, nullptr);
+        vert_shader_module = VK_NULL_HANDLE;
+    }
+    if (frag_shader_module != VK_NULL_HANDLE) {
+        vkDestroyShaderModule(ctx->Se_device->device, frag_shader_module, nullptr);
+        frag_shader_module = VK_NULL_HANDLE;
+    }
+    if (pipeline != VK_NULL_HANDLE) {
+        vkDestroyPipeline(ctx->Se_device->device, pipeline, nullptr);
+        pipeline = VK_NULL_HANDLE;
+    }
 }
 
 void SePipeline::bind(VkCommandBuffer commandBuffer)
 {
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+    if (Config::get().ray_tracing()) vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+    else vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 }
 
 void SePipeline::defaultPipelineConfigInfo()
@@ -105,6 +115,8 @@ void SePipeline::defaultPipelineConfigInfo()
     
     
 }
+
+
 
 std::vector<char> SePipeline::readFile(std::string filepath)
 {
@@ -204,18 +216,80 @@ void SePipeline::createGraphicsPipeline()
         std::cout << "Failed to create graphics pipeline: " << result << std::endl;
         throw std::runtime_error("Failed to create graphics pipeline");
     }
-
-    
     
 }
 
 void SePipeline::recreateGraphicsPipeline()
 {
-    vkDestroyShaderModule(ctx->Se_device->device, frag_shader_module, nullptr);
-    vkDestroyShaderModule(ctx->Se_device->device, vert_shader_module, nullptr);
-    vkDestroyPipeline(ctx->Se_device->device, pipeline, nullptr);
+    if (frag_shader_module != VK_NULL_HANDLE) {
+        vkDestroyShaderModule(ctx->Se_device->device, frag_shader_module, nullptr);
+        frag_shader_module = VK_NULL_HANDLE;
+    }
+    if (vert_shader_module != VK_NULL_HANDLE) {
+        vkDestroyShaderModule(ctx->Se_device->device, vert_shader_module, nullptr);
+        vert_shader_module = VK_NULL_HANDLE;
+    }
+    if (pipeline != VK_NULL_HANDLE) {
+        vkDestroyPipeline(ctx->Se_device->device, pipeline, nullptr);
+        pipeline = VK_NULL_HANDLE;
+    }
     createGraphicsPipeline();
     
+}
+
+void SePipeline::createComputePipeline()
+{
+    if (pipeline_config_info.pipelineLayout == VK_NULL_HANDLE) std::cout << "Cannot create graphics pipeline: No pipelineLayout provided in configInfo \n"; 
+    
+    // Create Shader Modules
+    auto compCode = readFile(Config::get().shader_path() + "raytrace.spv");
+    createShaderModule(compCode, vert_shader_module);
+
+
+    VkPipelineShaderStageCreateInfo shaderStages;
+    shaderStages.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shaderStages.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+    shaderStages.module = vert_shader_module;
+    shaderStages.pName = "main";
+    shaderStages.flags = 0;
+    shaderStages.pNext = nullptr;
+    shaderStages.pSpecializationInfo = nullptr;
+
+    auto bindingDescriptions = SeModel::Vertex::getBindingDescriptions();
+    auto attributeDescriptions = SeModel::Vertex::getAttributeDescriptions();
+    
+    // VkPipelineVertexInputStateCreateInfo
+    pipeline_config_info.vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    pipeline_config_info.vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+    pipeline_config_info.vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
+    pipeline_config_info.vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+    pipeline_config_info.vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
+    
+    // VkGraphicsPipelineCreateInf 
+    pipeline_config_info.computePipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    pipeline_config_info.computePipelineInfo.stage = shaderStages;
+    pipeline_config_info.computePipelineInfo.layout = pipeline_config_info.pipelineLayout;
+
+    VkResult result = vkCreateComputePipelines(ctx->Se_device->device, VK_NULL_HANDLE, 1, &pipeline_config_info.computePipelineInfo, nullptr, &pipeline);
+    string_VkResult(result);
+    if (result != VK_SUCCESS)
+    {
+        std::cout << "Failed to create compute pipeline: " << result << std::endl;
+        throw std::runtime_error("Failed to create compute pipeline");
+    }
+}
+
+void SePipeline::recreateComputePipeline()
+{
+    if (vert_shader_module != VK_NULL_HANDLE) {
+        vkDestroyShaderModule(ctx->Se_device->device, vert_shader_module, nullptr);
+        vert_shader_module = VK_NULL_HANDLE;
+    }
+    if (pipeline != VK_NULL_HANDLE) {
+        vkDestroyPipeline(ctx->Se_device->device, pipeline, nullptr);
+        pipeline = VK_NULL_HANDLE;
+    }
+    createComputePipeline();
 }
 
 void SePipeline::createShaderModule(const std::vector<char>& code, VkShaderModule &shaderModule)

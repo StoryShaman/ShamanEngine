@@ -238,9 +238,18 @@ void ShamanEngine::run()
         ctx->Se_camera->setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 1000.f);
         if (auto commandBuffer = ctx->Se_renderer->beginFrame())
         {
-            ctx->Se_renderer->beginSwapChainRenderPass(commandBuffer);
-            ctx->Se_renderer->renderObjects(commandBuffer, *ctx->Se_camera);
-            ctx->Se_renderer->endSwapChainRenderPass(commandBuffer);
+            
+            if (Config::get().ray_tracing())
+            {
+                ctx->Se_renderer->renderRays(commandBuffer, *ctx->Se_camera);
+            }
+            else
+            {
+                ctx->Se_renderer->beginSwapChainRenderPass(commandBuffer);
+                ctx->Se_renderer->renderObjects(commandBuffer, *ctx->Se_camera);
+                ctx->Se_renderer->endSwapChainRenderPass(commandBuffer);
+            }
+            
             ctx->Se_renderer->endFrame();
         }
     }

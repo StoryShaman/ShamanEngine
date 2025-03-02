@@ -9,6 +9,7 @@
 #include <set>
 #include <stdexcept>
 
+#include "Config.h"
 #include "SeDevice.h"
 #include "vulkancontext.h"
 
@@ -165,7 +166,8 @@ void SeSwapChain::createSwapChain() {
   createInfo.imageColorSpace = surfaceFormat.colorSpace;
   createInfo.imageExtent = extent;
   createInfo.imageArrayLayers = 1;
-  createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+  if (Config::get().ray_tracing()) createInfo.imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+  else createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
   QueueFamilyIndices indices = ctx->Se_device->findPhysicalQueueFamilies();
   uint32_t queueFamilyIndices[] = {indices.graphicsFamily, indices.presentFamily};

@@ -17,6 +17,7 @@ public:
         VkPipelineViewportStateCreateInfo viewportInfo;
         VkPipelineVertexInputStateCreateInfo vertexInputInfo;
         VkGraphicsPipelineCreateInfo graphicsPipelineInfo;
+        VkComputePipelineCreateInfo computePipelineInfo;
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
         VkPipelineRasterizationStateCreateInfo rasterizationInfo;
         VkPipelineMultisampleStateCreateInfo multisampleInfo;
@@ -26,6 +27,7 @@ public:
         std::vector<VkDynamicState> dynamicStateEnables;
         VkPipelineDynamicStateCreateInfo dynamicStateInfo;
         VkPipelineLayout pipelineLayout = nullptr;
+        VkDescriptorSetLayout descriptorSetLayout = nullptr;
         VkRenderPass renderPass = nullptr;
         uint32_t subpass = 0;
     };
@@ -42,6 +44,10 @@ public:
 
     void createGraphicsPipeline();
     void recreateGraphicsPipeline();
+    void createComputePipeline();
+    void recreateComputePipeline();
+    
+
 
 public:
 
@@ -51,6 +57,10 @@ public:
     VkShaderModule frag_shader_module;
     
 private:
+
+    
+
+    
     static std::vector<char> readFile(std::string file);
     
     

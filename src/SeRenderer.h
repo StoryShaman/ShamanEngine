@@ -21,10 +21,13 @@ public:
     ~SeRenderer();
 
     void createPipelineLayout();
+    void createRayTracePipelineLayout();
     void createPipeline();
+    void createComputePipeline();
     void createCommandBuffers();
     void recreateSwapChain(int imageIndex);
     void renderObjects(VkCommandBuffer commandBuffer, SeCamera &camera);
+    void renderRays(VkCommandBuffer commandBuffer, SeCamera &camera);
     void freeCommandBuffers();
     void loadCubeModel(glm::vec3 offset);
 
@@ -51,10 +54,18 @@ public:
     
 public:
     
-    std::vector<VkCommandBuffer> command_buffers;
-    VkPipelineLayout pipeline_layout;
     std::shared_ptr<VulkanContext> ctx;
     std::vector<SeObject> objects;
+    std::vector<VkCommandBuffer> command_buffers;
+    VkPipelineLayout pipeline_layout;
+    VkDescriptorSetLayout descriptor_set_layout;
+    VkDescriptorPool descriptor_pool;
+    VkDescriptorSet descriptor_set;
+
+    VkImage outputImage;
+    VkDeviceMemory outputImageMemory;
+    VkImageView outputImageView;
+    
 
 private:
     void loadModel();
@@ -64,6 +75,14 @@ private:
     
 private:
 
+    void createDescriptorSetLayout();
+    void createDescriptorPool();
+    void createDescriptorSet();
+    void createOutputImage();
+
+    
+
+    
     // FPS tracking
     int frameCount = 0;         // Number of frames since last update
     double lastFPSTime = 0.0;   // Time of last FPS update
